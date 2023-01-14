@@ -1,0 +1,146 @@
+<html lang="ja">
+
+<style>
+    html{
+        background:linear-gradient(lightskyblue,indigo)
+    }
+    td {
+        padding-left: 5px;
+    }
+    body{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .tablecontainer{
+        border-radius: 10px;
+        border-color: bisque;
+        padding: 32px;
+        background-color: white;
+    }
+</style>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>筆算シミュレーター</title>
+</head>
+
+<body>
+    <div id="table-container" class="tablecontainer"></div>
+
+</body>
+
+</html>
+<script>
+    /**
+     * @typedef {(number[])[]} Matrix
+     * */
+
+    /**
+     * @param {number} num
+     * @returns {number[]}
+     * */
+    const splitDigits = (num) => {
+        let digits = []
+        const text = num.toString()
+        for (let pos = 0; pos < text.length; pos++) {
+            char = text.charAt(pos)
+            digits.push(parseInt(char))
+        }
+        return digits
+    }
+
+    /**
+     * @param {Matrix} matrix
+     * @param {number} row
+     * @param {number[]} rowVector
+     * @param {number} margin
+     * @returns {Matrix}
+     * */
+    const setMatrixRowWithRightAlign = (matrix, row, rowVector, margin) => {
+        const numTargetColumn = matrix[row].length
+        const numVectorColumn = rowVector.length
+        const leftMargin = numTargetColumn - numVectorColumn - margin
+        for (let j = 0; j < numVectorColumn; j++) {
+            matrix[row][j + leftMargin] = rowVector[j]
+        }
+        return matrix
+    }
+
+    /**
+     * @param {number} numRow
+     * @param {number} numColumn
+     * @param {any} fill
+     * @returns {Matrix}
+     * */
+    const createEmptyMatrix = (numRow, numColumn, fill) => {
+        let matrix = []
+        for (let i = 0; i < numRow; i++) {
+            let rowVector = new Array(numColumn)
+            rowVector.fill(fill)
+            matrix.push(rowVector)
+        }
+        return matrix
+    }
+
+    /**
+     * @param {Matrix} table
+     * */
+    const renderHissanTable = (table) => {
+        const $table = document.createElement("table")
+        $table.style.borderCollapse = "collapse"
+        const numTableRow = table.length
+        table.forEach((row, index) => {
+            const $tr = document.createElement("tr")
+            row.forEach(x => {
+                const $td = document.createElement("td")
+                $td.innerText = x == undefined ? "" : x.toString()
+                $tr.append($td)
+            })
+
+            if (index == 2 || index == numTableRow - 1) {
+                $tr.style.borderTop = "1px solid black"
+                console.log(index, "上線")
+            }
+
+            $table.append($tr)
+        })
+        document.getElementById("table-container").append($table)
+    }
+
+
+    const a = 141323
+    const aDigits = splitDigits(a)
+    const b = 817
+    const bDigits = splitDigits(b)
+    const y = a * b
+    const yDigits = splitDigits(y)
+    console.group("問題設定")
+    console.log("a=", aDigits)
+    console.log("b=", bDigits)
+    console.log("a*b=y=", yDigits)
+    console.groupEnd()
+
+    const numTableColumn = yDigits.length
+    const numTableRow = 2 + bDigits.length + 1
+    const tableBuffer = createEmptyMatrix(numTableRow, numTableColumn, undefined)
+
+    let tableBufferRow = 0
+    setMatrixRowWithRightAlign(tableBuffer, tableBufferRow, aDigits, 0)
+    tableBufferRow++
+    setMatrixRowWithRightAlign(tableBuffer, 1, bDigits, 0)
+    tableBuffer[1][0] = "×"
+    for (let i = 0; i < bDigits.length; i++) {
+        const multOfStep = a * bDigits[bDigits.length - 1 - i]
+        const vectorOfStep = splitDigits(multOfStep)
+        tableBufferRow++
+        setMatrixRowWithRightAlign(tableBuffer, tableBufferRow, vectorOfStep, i)
+    }
+    tableBufferRow++
+    setMatrixRowWithRightAlign(tableBuffer, tableBufferRow, yDigits, 0)
+
+    console.log(tableBuffer)
+    renderHissanTable(tableBuffer)
+</script>
